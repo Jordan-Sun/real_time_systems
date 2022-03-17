@@ -74,7 +74,7 @@ int init_sensor(const char* bus_name)
 	int fd = ERR_OPEN;
 	
 	/* attempt to open the i2c bus */
-	fd = open(INDOOR_I2C_BUS, O_RDWR);
+	fd = open(bus_name, O_RDWR);
 	if(fd < SUCCESS) 
 	{
 		perror("failed to open i2c bus");
