@@ -1,8 +1,7 @@
 /*
- * sensor_thread.h
+ * socket_unix.c
  *
- * Reads data from an tsl2561 ambient light sensor on the I2C bus at 
- * I2C_PATH, and sends it as a data packet to the socket at SOCKET_PATH.
+ * Send a data packet to a unix (local) socket.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,24 +17,17 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SENSOR_THREAD_H
-#define SENSOR_THREAD_H
+#include "socket.h"
 
-#include "sensor_io.h"
-
-/* Argument indices */
-enum argi
+int init_socket(const char *socket)
 {
-	/* Program name */
-	PROGRAM_NAME,
-	/* Path to the I2C bus */
-	I2C_PATH,
-	/* Path to the socket */
-	SOCKET_PATH,
-	/* Expected number of arguments */
-	EXPECTED_ARGC
-};
+    /* Socket address name */
+    struct sockaddr_un name;
 
-void usage_msg(char* program);
+    return SUCCESS;
+}
 
-#endif /* SENSOR_THREAD_H */
+int send_packet(sensor_packet_t *packet)
+{
+    return SUCCESS;
+}
