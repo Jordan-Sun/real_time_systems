@@ -18,6 +18,7 @@
  */
 
 #include "sensor_io.h"
+#include "blocking_io.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -47,12 +48,12 @@ int init_sensor(const char *bus)
     }
 
     /* configure the sensor */
-    if (write(fd, control_reg, CONTROL_REGC) != CONTROL_REGC)
+    if (blocking_write(fd, control_reg, CONTROL_REGC) != CONTROL_REGC)
     {
         perror("Failed to power on sensor");
         return -ERR_WRITE_CONTROL;
     }
-    if (write(fd, timing_reg, TIMING_REGC) != TIMING_REGC)
+    if (blocking_write(fd, timing_reg, TIMING_REGC) != TIMING_REGC)
     {
         perror("Failed to set sensor timing");
         return -ERR_WRITE_TIMING;

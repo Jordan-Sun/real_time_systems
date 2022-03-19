@@ -30,19 +30,29 @@ enum errcode
     /* Unexpected number of arguments */
     ERR_NUM_ARGC,
     /* Failed to open i2c bus fd */
-    ERR_OPEN,
+    ERR_OPEN = 10,
     /* Failed to configure i2c bus fd */
     ERR_IOCTL,
-    /* Failed to read or write to the i2c bus fd */
+    /* Failed to write control configuration to the i2c bus fd */
     ERR_WRITE_CONTROL,
+    /* Failed to write timing configuration to the i2c bus fd */
     ERR_WRITE_TIMING,
+    /* Failed to write read instruction to the i2c bus fd */
     ERR_WRITE_READ,
+    /* Failed to read data from the i2c bus fd */
     ERR_READ_DATA,
-    /* Failed to create the socket */
-    /* Failed to connect to the socket */
-    /* Failed to read or write to the i2c bus fd */
     /* Get time failure */
     ERR_TIME,
+    /* Failed to create socket */
+    ERR_SOCKET = 20,
+    /* Failed to bind the socket */
+    ERR_BIND,
+    /* Failed to listen to socket */
+    ERR_LISTEN,
+    /* Failed to connect to the socket */
+    ERR_CONNECT,
+    /* Failed to send to the socket */
+    ERR_SEND,
 };
 
 #endif /* ERROR_H */

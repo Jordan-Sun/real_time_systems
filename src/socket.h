@@ -33,8 +33,12 @@
 /* Socket protocal */
 #define SOCK_PROTOCAL 0
 
-int init_socket(const char *socket);
+int init_socket(const char *sock, int backlog);
 
-int send_packet(sensor_packet_t *packet);
+int conn_socket(const char *sock);
+
+int send_packet(unsigned int fd, const sensor_packet_t *packet);
+
+int recv_packet(unsigned int fd, sensor_packet_t *packet);
 
 #endif /* SOCKET_H */

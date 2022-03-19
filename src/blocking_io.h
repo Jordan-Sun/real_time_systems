@@ -1,7 +1,9 @@
 /*
- * sensor_packet.h
+ * blocking_io.h
  *
- * The data packet sent by the sensor thread to the socket.
+ * Synchronous io helper methods.
+ *
+ * Copyright (C) 2022 Jordan Sun
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,20 +19,15 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SENSOR_PACKET_H
-#define SENSOR_PACKET_H
+#ifndef BLOCKING_IO_H
+#define BLOCKING_IO_H
 
-#include <time.h>
+#include <unistd.h>
 
-typedef struct sensor_packet
-{
-	/* Metadata */
-	time_t timestamp;
-	unsigned int sequence;
-	/* Data */
-	int full;
-	int infrared;
-	int visible;
-} sensor_packet_t;
+/* blocks until all the data is written or the write fails */
+ssize_t blocking_write(int fd, const void *buf, size_t len);
 
-#endif /* SENSOR_PACKET_H */
+/* blocks until all the data is read or the read fails */
+ssize_t blocking_read(int fd, void *buf, size_t len);
+
+#endif /* BLOCKING_IO_H */
