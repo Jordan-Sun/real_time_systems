@@ -36,7 +36,7 @@ int main()
 
     for (seq = 0; seq < PACK_COUNT; ++seq)
     {
-        packet.timestamp = time(NULL);
+        assert(clock_gettime(CLOCK_MONOTONIC, &packet.timestamp) == 0);
         packet.sequence = seq;
         packet.full = seq;
         packet.infrared = seq;

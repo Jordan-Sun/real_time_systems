@@ -29,6 +29,8 @@ int main()
 {
     int conn_fd, data_fd;
     unsigned int expected;
+    struct timespec recv_timestamp;
+    struct timespec diff_timestamp;
     sensor_packet_t packet;
     
     unlink(SOCK_PATH);
@@ -41,13 +43,16 @@ int main()
 
     for (expected = 0; expected < PACK_COUNT; ++expected)
     {
-        packet.timestamp = -1;
+        packet.timestamp.tv_nsec = -1;
+        packet.timestamp.tv_sec = -1;
         packet.sequence = (unsigned int) -1;
         packet.full = -1;
         packet.infrared = -1;
         packet.visible = -1;
         assert(recv_packet(data_fd, &packet) == sizeof(sensor_packet_t));
-        assert(packet.timestamp != -1);
+        assert(clock_gettime(CLOCK_MONOTONIC, &recv_timestamp) == 0);
+        assert(packet.timestamp.tv_sec != -1);
+        assert(packet.timestamp.tv_nsec != -1);
         /* Read failure */
         assert(packet.sequence != (unsigned int) -1);
         /* Packet loss */
@@ -55,7 +60,16 @@ int main()
         assert(packet.full != -1);
         assert(packet.infrared != -1);
         assert(packet.visible != -1);
-        printf("visible=%dlux\tinfrared=%d\tluxfull=%dlux\tseq=%d\ttimestamp = %ld\ttime = %g\n", packet.visible, packet.infrared, packet.full, packet.sequence, packet.timestamp, difftime(time(NULL), packet.timestamp));
+
+        diff_timestamp.tv_sec = recv_timestamp.tv_sec - packet.timestamp.tv_sec;
+        diff_timestamp.tv_nsec = recv_timestamp.tv_nsec - packet.timestamp.tv_nsec;
+        if (diff_timestamp.tv_nsec < 0)
+        {
+            diff_timestamp.tv_sec -= 1;
+            diff_timestamp.tv_nsec += 1000000000;
+        }
+
+        printf("visible=%dlux\tinfrared=%dlux\tfull=%dlux\tseq=%d\ttime=%ld.%ld\n", packet.visible, packet.infrared, packet.full, packet.sequence, diff_timestamp.tv_sec, diff_timestamp.tv_nsec);
     }
 
     close(conn_fd);

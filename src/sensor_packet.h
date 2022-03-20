@@ -25,7 +25,7 @@
 typedef struct sensor_packet
 {
 	/* Metadata */
-	time_t timestamp;
+	struct timespec timestamp;
 	unsigned int sequence;
 	/* Data */
 	int full;
