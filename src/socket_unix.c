@@ -20,6 +20,8 @@
 #include "socket.h"
 #include "blocking_io.h"
 
+#include <string.h>
+
 int init_socket(const char *sock, int backlog)
 {
     /* File descriptor for the socket */
