@@ -1,7 +1,9 @@
 /*
- * sensor_packet.h
+ * control_thread.c
  *
- * The data packet sent from the sensor thread to the control thread.
+ * Control thread.
+ *
+ * Copyright (C) 2022 Jordan Sun
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,20 +19,29 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SENSOR_PACKET_H
-#define SENSOR_PACKET_H
+/* Maximum sockets */
+#define SOCK_BACKLOG 8
+/* Maximum epoll events */
+#define MAX_EVENTS SOCK_BACKLOG + 1
+/* Socket symbols */
+#define INDOOR_SYM 'i'
+#define OUTDOOR_SYM 'o'
+/* Control command words */
+#define MIN_CMD "min"
+#define MAX_CMD "max"
+/* Default threshold */
+#define DEFAULT_MIN 128
+#define DEFAULT_MAX 256
+/* Timeout interval (ms) */
+#define EPOLL_TIMEOUT 500
 
-#include <time.h>
-
-typedef struct sensor_packet
+/* Argument indices */
+enum argi
 {
-	/* Metadata */
-	struct timespec timestamp;
-	unsigned int sequence;
-	/* Data */
-	int full;
-	int infrared;
-	int visible;
-} sensor_packet_t;
-
-#endif /* SENSOR_PACKET_H */
+    /* Program name */
+    PROGRAM_NAME,
+    /* Path to the sensor socket */
+    SOCK_PATH,
+    /* Expected number of arguments */
+    EXPECTED_ARGC
+};
