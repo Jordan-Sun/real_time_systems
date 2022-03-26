@@ -21,6 +21,8 @@
  */
 
 #include "sensor_thread.h"
+#include "sensor_io.h"
+#include "socket.h"
 
 #include <stdio.h>
 
@@ -41,6 +43,8 @@ int main(int argc, char *argv[])
 	int ret;
 	/* File descriptor of the sensor and the socket */
 	int sensor_fd, sock_fd;
+	/* Package sequence counter */
+	unsigned int seq;
 	/* Data packets */
 	sensor_packet_t packet, last_packet;
 
@@ -51,22 +55,55 @@ int main(int argc, char *argv[])
 	}
 
 	/* Initialize the sensor */
+	printf("Initializing sensor %s...\n", argv[I2C_PATH]);
 	sensor_fd = init_sensor(argv[I2C_PATH]);
 	if (sensor_fd < SUCCESS)
 		return sensor_fd;
+	printf("Initialized.\n");
+	
+	/* Connect to socket */
+	printf("Connecting to socket %s...\n", argv[SOCK_PATH]);
+	sock_fd = conn_socket(argv[SOCK_PATH]);
+	if (sock_fd < SUCCESS)
+		return sock_fd;
+	printf("Connected.\n");
 
-	/* Discards the first packet */
+	/* First packet */
 	ret = read_sensor(sensor_fd, &packet);
+	if (ret < SUCCESS)
+		return ret;
+	seq = 0;
+	packet.sequence = 0;
+	ret = clock_gettime(CLOCK_MONOTONIC, &packet.timestamp);
+	if (ret < SUCCESS)
+	{
+		perror("Failed to get time");
+		return ERR_TIME;
+	}
+	ret = send_packet(sock_fd, &packet);
 	if (ret < SUCCESS)
 		return ret;
 	last_packet = packet;
 
 	for (;;)
 	{
-		read_sensor(sensor_fd, &packet);
+		ret = read_sensor(sensor_fd, &packet);
 		if (ret < SUCCESS)
 			return ret;
-		last_packet = packet;
+		if ((packet.infrared != last_packet.infrared) || (packet.full != last_packet.full))
+		{
+			packet.sequence = ++seq;
+			ret = clock_gettime(CLOCK_MONOTONIC, &packet.timestamp);
+			if (ret < SUCCESS)
+			{
+				perror("Failed to get time");
+				return ERR_TIME;
+			}
+			ret = send_packet(sock_fd, &packet);
+			if (ret < SUCCESS)
+				return ret;
+			last_packet = packet;
+		}
 	}
 
 	return SUCCESS;

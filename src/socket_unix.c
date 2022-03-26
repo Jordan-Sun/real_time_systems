@@ -24,7 +24,7 @@
 int init_socket(const char *sock, int backlog)
 {
     /* File descriptor for the socket */
-    unsigned int fd;
+    int fd;
     /* Socket address name */
     struct sockaddr_un name;
 
@@ -61,7 +61,7 @@ int init_socket(const char *sock, int backlog)
 int conn_socket(const char *sock)
 {
     /* File descriptor for the socket */
-    unsigned int fd;
+    int fd;
     /* Socket address name */
     struct sockaddr_un name;
 
