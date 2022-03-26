@@ -47,8 +47,6 @@ int main(int argc, char *argv[])
 	unsigned int seq;
 	/* Data packets */
 	sensor_packet_t packet, last_packet;
-	/* Sleep timestamps */
-	struct timespec next_timeout;
 
 	if (argc != EXPECTED_ARGC)
 	{
@@ -70,20 +68,7 @@ int main(int argc, char *argv[])
 		return sock_fd;
 	printf("Connected.\n");
 
-	
-	ret = clock_gettime(CLOCK_MONOTONIC, &next_timeout);
-	if (ret < SUCCESS)
-	{
-		perror("Failed to get time");
-		return ERR_TIME;
-	}
-	next_timeout.tv_nsec += PERIOD;
-	if (next_timeout.tv_nsec >= 1000000000)
-	{
-		next_timeout.tv_sec += 1;
-		next_timeout.tv_nsec -= 1000000000;
-	}
-	nanosleep(&next_timeout, NULL);
+	sleep(PERIOD);
 	
 	/* First packet */
 	ret = read_sensor(sensor_fd, &packet);
@@ -104,13 +89,7 @@ int main(int argc, char *argv[])
 
 	for (;;)
 	{	
-		next_timeout.tv_nsec += PERIOD;
-		if (next_timeout.tv_nsec >= 1000000000)
-		{
-			next_timeout.tv_sec += 1;
-			next_timeout.tv_nsec -= 1000000000;
-		}
-		nanosleep(&next_timeout, NULL);
+		sleep(PERIOD);
 		
 		ret = read_sensor(sensor_fd, &packet);
 		if (ret < SUCCESS)
@@ -124,6 +103,9 @@ int main(int argc, char *argv[])
 				perror("Failed to get time");
 				return ERR_TIME;
 			}
+
+			printf("visible=%dlux\tinfrared=%dlux\tfull=%dlux\tseq=%d\t\n", packet.visible, packet.infrared, packet.full, packet.sequence);
+
 			ret = send_packet(sock_fd, &packet);
 			if (ret < SUCCESS)
 				return ret;

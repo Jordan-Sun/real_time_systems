@@ -23,7 +23,7 @@
 
 #include "sensor_io.h"
 
-#define PERIOD 500000000
+#define PERIOD 1
 
 /* Argument indices */
 enum argi

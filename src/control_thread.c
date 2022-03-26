@@ -275,6 +275,13 @@ int main(int argc, char *argv[])
                                 break;
                             }
                         }
+                        ev.events = EPOLLIN;
+                        ev.data.fd = data_fd;
+                        if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, data_fd, &ev) < SUCCESS)
+                        {
+                            perror("Failed to add data socket to epoll");
+                            return -ERR_EPCTL;
+                        }
                     }
                     else if (events[i].data.fd == indoor_fd)
                     {
