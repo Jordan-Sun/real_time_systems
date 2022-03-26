@@ -85,11 +85,5 @@ int read_sensor(int fd, sensor_packet_t *packet)
     /* Get the visible light intensity by calculating the difference */
     packet->visible = packet->full - packet->infrared;
 
-    if (clock_gettime(CLOCK_MONOTONIC, &packet->timestamp) < SUCCESS)
-    {
-        perror("Failed to get timestamp");
-        return -ERR_TIME;
-    }
-
     return SUCCESS;
 }

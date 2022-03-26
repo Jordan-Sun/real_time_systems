@@ -47,6 +47,8 @@ int main(int argc, char *argv[])
 	unsigned int seq;
 	/* Data packets */
 	sensor_packet_t packet, last_packet;
+	/* Sleep timestamps */
+	struct timespec next_timeout;
 
 	if (argc != EXPECTED_ARGC)
 	{
@@ -68,6 +70,21 @@ int main(int argc, char *argv[])
 		return sock_fd;
 	printf("Connected.\n");
 
+	
+	ret = clock_gettime(CLOCK_MONOTONIC, &next_timeout);
+	if (ret < SUCCESS)
+	{
+		perror("Failed to get time");
+		return ERR_TIME;
+	}
+	next_timeout.tv_nsec += PERIOD;
+	if (next_timeout.tv_nsec >= 1000000000)
+	{
+		next_timeout.tv_sec += 1;
+		next_timeout.tv_nsec -= 1000000000;
+	}
+	nanosleep(&next_timeout, NULL);
+	
 	/* First packet */
 	ret = read_sensor(sensor_fd, &packet);
 	if (ret < SUCCESS)
@@ -86,7 +103,15 @@ int main(int argc, char *argv[])
 	last_packet = packet;
 
 	for (;;)
-	{
+	{	
+		next_timeout.tv_nsec += PERIOD;
+		if (next_timeout.tv_nsec >= 1000000000)
+		{
+			next_timeout.tv_sec += 1;
+			next_timeout.tv_nsec -= 1000000000;
+		}
+		nanosleep(&next_timeout, NULL);
+		
 		ret = read_sensor(sensor_fd, &packet);
 		if (ret < SUCCESS)
 			return ret;

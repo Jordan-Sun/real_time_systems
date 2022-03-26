@@ -37,7 +37,7 @@
 #define DEFAULT_MIN 128
 #define DEFAULT_MAX 256
 /* Timeout interval (ms) */
-#define EPOLL_TIMEOUT 500
+#define EPOLL_TIMEOUT -1
 
 /* Argument indices */
 enum argi
