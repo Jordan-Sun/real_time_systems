@@ -30,16 +30,16 @@
 #define CONTROL_REGC 2
 /* Select control register (0x80) */
 /* Set power on mode (0x03) */
-const char control_reg[CONTROL_REGC] = {0x80, 0x03};
+static const char control_reg[CONTROL_REGC] = {0x80, 0x03};
 
 #define TIMING_REGC 2
 /* Select timing register (0x81) */
 /* Set 402ms resolution  (0x02) */
-const char timing_reg[TIMING_REGC] = {0x81, 0x02};
+static const char timing_reg[TIMING_REGC] = {0x81, 0x02};
 
 #define READ_REGC 1
 /* Select read register (0x8c) */
-const char read_reg[READ_REGC] = {0x8c};
+static const char read_reg[READ_REGC] = {0x8c};
 
 #define DATA_REGC 4
 /* Data indices */

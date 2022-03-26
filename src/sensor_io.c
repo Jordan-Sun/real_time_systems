@@ -67,13 +67,13 @@ int read_sensor(int fd, sensor_packet_t *packet)
     char data_reg[DATA_REGC] = {0};
 
     /* Read data from sensor */
-    if (write(fd, read_reg, READ_REGC) != READ_REGC)
+    if (blocking_write(fd, read_reg, READ_REGC) != READ_REGC)
     {
         perror("Failed to initialize read");
         return -ERR_WRITE_READ;
     }
 
-    if (read(fd, data_reg, DATA_REGC) != DATA_REGC)
+    if (blocking_read(fd, data_reg, DATA_REGC) != DATA_REGC)
     {
         perror("Failed to read data");
         return -ERR_READ_DATA;
@@ -84,12 +84,6 @@ int read_sensor(int fd, sensor_packet_t *packet)
     packet->infrared = (data_reg[INFRARED_MSB] << 8) + data_reg[INFRARED_LSB];
     /* Get the visible light intensity by calculating the difference */
     packet->visible = packet->full - packet->infrared;
-
-    if (time(&packet->timestamp) < SUCCESS)
-    {
-        perror("Failed to get timestamp");
-        return -ERR_TIME;
-    }
 
     return SUCCESS;
 }

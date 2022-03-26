@@ -18,14 +18,13 @@
  */
 
 #include "socket.h"
-#include "blocking_io.h"
 
 #include <string.h>
 
 int init_socket(const char *sock, int backlog)
 {
     /* File descriptor for the socket */
-    unsigned int fd;
+    int fd;
     /* Socket address name */
     struct sockaddr_un name;
 
@@ -62,7 +61,7 @@ int init_socket(const char *sock, int backlog)
 int conn_socket(const char *sock)
 {
     /* File descriptor for the socket */
-    unsigned int fd;
+    int fd;
     /* Socket address name */
     struct sockaddr_un name;
 
@@ -91,10 +90,10 @@ int conn_socket(const char *sock)
 
 int send_packet(unsigned int fd, const sensor_packet_t *packet)
 {
-    return blocking_write(fd, packet, sizeof(sensor_packet_t));
+    return send(fd, packet, sizeof(sensor_packet_t), 0);
 }
 
 int recv_packet(unsigned int fd, sensor_packet_t *packet)
 {
-    return blocking_read(fd, packet, sizeof(sensor_packet_t));
+    return recv(fd, packet, sizeof(sensor_packet_t), MSG_WAITALL);
 }

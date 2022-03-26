@@ -1,7 +1,7 @@
 /*
  * sensor_packet.h
  *
- * The data packet sent by the sensor thread to the socket.
+ * The data packet sent from the sensor thread to the control thread.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

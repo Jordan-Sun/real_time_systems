@@ -23,6 +23,8 @@
 
 #include "sensor_io.h"
 
+#define PERIOD 1
+
 /* Argument indices */
 enum argi
 {
@@ -31,7 +33,7 @@ enum argi
 	/* Path to the I2C bus */
 	I2C_PATH,
 	/* Path to the socket */
-	SOCKET_PATH,
+	SOCK_PATH,
 	/* Expected number of arguments */
 	EXPECTED_ARGC
 };

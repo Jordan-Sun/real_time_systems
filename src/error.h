@@ -53,6 +53,16 @@ enum errcode
     ERR_CONNECT,
     /* Failed to send to the socket */
     ERR_SEND,
+    /* Failed to receive from the socket */
+    ERR_RECV,
+    /* Failed to create epoll */
+    ERR_EPOLL = 30,
+    /* Failed to control epoll */
+    ERR_EPCTL,
+    /* Failed to epoll wait*/
+    ERR_EPWAIT,
+    /* Unexpected epoll disconnection */
+    ERR_EPHUP,
 };
 
 #endif /* ERROR_H */
