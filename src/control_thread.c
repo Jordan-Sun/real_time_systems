@@ -26,6 +26,9 @@
 #include "error.h"
 
 #include <sys/epoll.h>
+#include <string.h>
+
+static int light_on = 0;
 
 /*
  * Prints the usage message.
@@ -35,7 +38,7 @@ void usage_msg(char *program)
     printf("Usage: %s SOCKET_PATH\n", program);
     printf("%s MIN_VALUE\n", MIN_CMD);
     printf("%s MAX_VALUE\n", MAX_CMD);
-    printf("Reads data from indoor and outdoor ambient light sensors , process the data and control motor and light through sockets to maintain a light level between MIN_VALUE (default %d) lux and MAX_VALUE (default %d) lux.\n", DEFAULT_MIN, DEFAULT_MAX);
+    printf("Reads data from indoor and outdoor ambient light sensors, process the data and control motor and light through sockets to maintain a light level between MIN_VALUE (default %d) lux and MAX_VALUE (default %d) lux.\n", DEFAULT_MIN, DEFAULT_MAX);
 }
 
 /*
@@ -47,7 +50,7 @@ int use_sensor(int fd, int *data)
     sensor_packet_t sensor_packet;
     struct timespec recv_timestamp, diff_timestamp;
 
-    if (recv_packet(data_fd, &sensor_packet) != sizeof(sensor_packet_t))
+    if (recv_packet(fd, &sensor_packet) != sizeof(sensor_packet_t))
     {
         return -ERR_RECV;
     }
@@ -69,18 +72,79 @@ int use_sensor(int fd, int *data)
         *data = sensor_packet.visible;
     }
 
-    printf("visible=%dlux\tinfrared=%dlux\tfull=%dlux\tseq=%d\ttime=%ld.%ld\n", sensor_packet.visible, sensor_packet.infrared, sensor_packet.full, sensor_packet.sequence, diff_timestamp.tv_sec, diff_timestamp.tv_nsec);
+    printf("%d: visible=%dlux\tinfrared=%dlux\tfull=%dlux\tseq=%d\ttime=%ld.%ld\n", fd, sensor_packet.visible, sensor_packet.infrared, sensor_packet.full, sensor_packet.sequence, diff_timestamp.tv_sec, diff_timestamp.tv_nsec);
 
     return SUCCESS;
+}
+
+/*
+ * Updates.
+ */
+void update(int motor_fd, int light_fd, int indoor, int outdoor, int min, int max)
+{
+    if (indoor < min)
+    {
+        if (outdoor > min)
+        {
+            printf("Rasing curtain.\n");
+            return;
+            if (!motor_fd)
+            {
+                printf("Not connected to motor.\n");
+            }
+        }
+        
+        if (light_on)
+        {
+            printf("Too dim inside.\n");
+        }
+        else
+        {
+            light_on = 1;
+            printf("Turning light on.\n");
+            if (!light_fd)
+            {
+                printf("Not connected to light.\n");
+            }
+        }
+    }
+    else if (indoor > max)
+    {
+        if (light_on)
+        {
+            light_on = 0;
+            printf("Turning light off.\n");
+            if (!light_fd)
+            {
+                printf("Not connected to light.\n");
+            }
+        }
+        else if (outdoor > max)
+        {
+            printf("Too bright outside.\n");
+        }
+        else
+        {
+            printf("Lowering curtain.\n");
+            if (!motor_fd)
+            {
+                printf("Not connected to motor.\n");
+            }
+        }
+    }
 }
 
 int main(int argc, char *argv[])
 {
     int conn_fd, data_fd, epoll_fd, indoor_fd, outdoor_fd, motor_fd, light_fd;
     int indoor, outdoor, min, max;
-    int indoor_tmp, outdoor_tmp;
+    char *command;
+    int indoor_tmp, outdoor_tmp, len, val_tmp;
     char sensor_type;
     struct epoll_event ev, events[MAX_EVENTS];
+    int nfds;
+    struct sockaddr addr;
+    socklen_t addr_len;
 
     if (argc != EXPECTED_ARGC)
     {
@@ -88,7 +152,7 @@ int main(int argc, char *argv[])
         return -ERR_NUM_ARGC;
     }
     
-    unlink(SOCK_PATH);
+    unlink(argv[SOCK_PATH]);
 
     indoor_fd = 0;
     outdoor_fd = 0;
@@ -101,8 +165,9 @@ int main(int argc, char *argv[])
     outdoor_tmp = 0;
     min = DEFAULT_MIN;
     max = DEFAULT_MAX;
+    val_tmp = 0;
 
-    conn_fd = init_socket(SOCK_PATH, SOCK_BACKLOG);
+    conn_fd = init_socket(argv[SOCK_PATH], SOCK_BACKLOG);
     if (conn_fd < SUCCESS)
     {
         perror("Failed to connect to socket");
@@ -118,7 +183,7 @@ int main(int argc, char *argv[])
 
     ev.events = EPOLLIN;
     ev.data.fd = STDIN_FILENO;
-    if (epoll_ctl(epollfd, EPOLL_CTL_ADD, STDIN_FILENO, &ev) < SUCCESS)
+    if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, STDIN_FILENO, &ev) < SUCCESS)
     {
         perror("Failed to add stdin to epoll");
         return -ERR_EPCTL;
@@ -126,7 +191,7 @@ int main(int argc, char *argv[])
 
     ev.events = EPOLLIN;
     ev.data.fd = conn_fd;
-    if (epoll_ctl(epollfd, EPOLL_CTL_ADD, conn_fd, &ev) < SUCCESS)
+    if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, conn_fd, &ev) < SUCCESS)
     {
         perror("Failed to add connection socket to epoll");
         return -ERR_EPCTL;
@@ -134,7 +199,7 @@ int main(int argc, char *argv[])
 
     for (;;)
     {
-        nfds = epoll_wait(epollfd, events, MAX_EVENTS, EPOLL_TIMEOUT);
+        nfds = epoll_wait(epoll_fd, events, MAX_EVENTS, EPOLL_TIMEOUT);
 
         if (nfds < 0)
         {
@@ -148,42 +213,48 @@ int main(int argc, char *argv[])
             {
                 /* use previous data */
                 printf("Timeout, using previous data.\n");
+                update(motor_fd, light_fd, indoor, outdoor, min, max);
             }
             /* no connection */
         }
         else
         {
-            for (size_t i = 0; i < nfds; ++i)
+            for (int i = 0; i < nfds; ++i)
             {
                 if (events[i].events & EPOLLIN)
                 {
                     /* input */
                     if (events[i].data.fd == STDIN_FILENO)
                     {
-                        printf("Stdin disconnected.\n");
-                        return -ERR_EPHUP;
-                    }
-                    else if (events[i].data.fd == conn_fd)
-                    {
-                        printf("Connection socket disconnected.\n");
-                        return -ERR_EPHUP;
-                    }
-                    else if (events[i].data.fd == indoor_fd)
-                    {
-                        printf("Indoor socket disconnected.\n");
-                        indoor_fd = 0;
-                    }
-                    else if (events[i].data.fd == outdoor_fd)
-                    {
-                        printf("Outdoor socket disconnected.\n");
-                        outdoor_fd = 0;
-                    }
-                }
-                if (events[i].events & EPOLLRDHUP)
-                {
-                    /* disconnect */
-                    if (events[i].data.fd == STDIN_FILENO)
-                    {
+                        len = scanf("%ms %d", &command, &val_tmp);
+                        
+                        if (len == 2)
+                        {
+                            if (strcmp(command, MIN_CMD) == 0)
+                            {
+                                min = val_tmp;
+                                printf("Updated minimum to %d.\n", min);
+                            }
+                            else if (strcmp(command, MAX_CMD) == 0)
+                            {
+                                max = val_tmp;
+                                printf("Updated maximum to %d.\n", max);
+                            }
+                            else
+                            {
+                                printf("Unknown command %s.\n", command);
+                            }
+                        }
+                        else
+                        {
+                            printf("%s MIN_VALUE\n", MIN_CMD);
+                            printf("%s MAX_VALUE\n", MAX_CMD);
+                        }
+                        
+                        if (len > 0)
+                        {
+                            free(command);
+                        }
                     }
                     else if (events[i].data.fd == conn_fd)
                     {
@@ -215,6 +286,7 @@ int main(int argc, char *argv[])
                         else
                         {
                             indoor = indoor_tmp;
+                            update(motor_fd, light_fd, indoor, outdoor, min, max);
                         }
                     }
                     else if (events[i].data.fd == outdoor_fd)
@@ -227,7 +299,32 @@ int main(int argc, char *argv[])
                         else
                         {
                             outdoor = outdoor_tmp;
+                            update(motor_fd, light_fd, indoor, outdoor, min, max);
                         }
+                    }
+                }
+                if (events[i].events & EPOLLRDHUP)
+                {
+                    /* disconnect */
+                    if (events[i].data.fd == STDIN_FILENO)
+                    {
+                        printf("Stdin disconnected.\n");
+                        return -ERR_EPHUP;
+                    }
+                    else if (events[i].data.fd == conn_fd)
+                    {
+                        printf("Connection socket disconnected.\n");
+                        return -ERR_EPHUP;
+                    }
+                    else if (events[i].data.fd == indoor_fd)
+                    {
+                        printf("Indoor socket disconnected.\n");
+                        indoor_fd = 0;
+                    }
+                    else if (events[i].data.fd == outdoor_fd)
+                    {
+                        printf("Outdoor socket disconnected.\n");
+                        outdoor_fd = 0;
                     }
                 }
             }
@@ -235,7 +332,7 @@ int main(int argc, char *argv[])
     }
 
     close(conn_fd);
-    unlink(SOCK_PATH);
+    unlink(argv[SOCK_PATH]);
 
     return SUCCESS;
 }

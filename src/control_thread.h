@@ -19,6 +19,9 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#ifndef CONTROL_THREAD_H
+#define CONTROL_THREAD_H
+
 /* Maximum sockets */
 #define SOCK_BACKLOG 8
 /* Maximum epoll events */
@@ -29,6 +32,7 @@
 /* Control command words */
 #define MIN_CMD "min"
 #define MAX_CMD "max"
+#define CMD_MAX_WIDTH 4
 /* Default threshold */
 #define DEFAULT_MIN 128
 #define DEFAULT_MAX 256
@@ -45,3 +49,5 @@ enum argi
     /* Expected number of arguments */
     EXPECTED_ARGC
 };
+
+#endif /* CONTROL_THREAD_H */
