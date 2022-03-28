@@ -151,8 +151,6 @@ int main(int argc, char *argv[])
         usage_msg(argv[PROGRAM_NAME]);
         return -ERR_NUM_ARGC;
     }
-    
-    unlink(argv[SOCK_PATH]);
 
     indoor_fd = 0;
     outdoor_fd = 0;
@@ -339,7 +337,6 @@ int main(int argc, char *argv[])
     }
 
     close(conn_fd);
-    unlink(argv[SOCK_PATH]);
 
     return SUCCESS;
 }

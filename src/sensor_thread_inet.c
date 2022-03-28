@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
 	printf("Initialized.\n");
 	
 	/* Connect to socket */
-	printf("Connecting to host %s on port %d...\n", argv[HOST_PATH], argv[PORT_NUM]);
+	printf("Connecting to host %s on port %s...\n", argv[HOST_PATH], argv[PORT_NUM]);
 	sock_fd = conn_socket(argv[HOST_PATH], atoi(argv[PORT_NUM]));
 	if (sock_fd < SUCCESS)
 		return sock_fd;
