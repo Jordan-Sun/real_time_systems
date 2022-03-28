@@ -35,7 +35,7 @@ static int light_on = 0;
  */
 void usage_msg(char *program)
 {
-    printf("Usage: %s SOCKET_PATH\n", program);
+    printf("Usage: %s PORT_NUM\n", program);
     printf("%s MIN_VALUE\n", MIN_CMD);
     printf("%s MAX_VALUE\n", MAX_CMD);
     printf("Reads data from indoor and outdoor ambient light sensors, process the data and control motor and light through sockets to maintain a light level between MIN_VALUE (default %d) lux and MAX_VALUE (default %d) lux.\n", DEFAULT_MIN, DEFAULT_MAX);

@@ -39,13 +39,6 @@ int init_socket(unsigned int port, int backlog)
         perror("Failed to open socket");
         return -ERR_SOCKET;
     }
-    
-    /* Get hostname */
-    if (gethostname(hostname, sizeof(hostname)) < 0)
-    {
-        perror("Failed to get hostname");
-        return -ERR_HOSTNAME;
-    }
 
     memset(&name, 0, sizeof(struct sockaddr_in));
     name.sin_family = AF_INET;
@@ -67,6 +60,13 @@ int init_socket(unsigned int port, int backlog)
         return -ERR_LISTEN;
     }
 
+    
+    /* Get hostname */
+    if (gethostname(hostname, sizeof(hostname)) < 0)
+    {
+        perror("Failed to get hostname");
+        return -ERR_HOSTNAME;
+    }
     printf("Listening at %s on port %u.\n", hostname, port);
 
     return fd;
@@ -79,7 +79,7 @@ int conn_socket(const char *host, unsigned int port)
     /* Socket address name */
     struct sockaddr_in name;
 
-    /* Create a socket for unix connection */
+    /* Create a socket for inet connection */
     fd = socket(AF_INET, SOCK_STREAM, SOCK_PROTOCAL);
     if (fd < SUCCESS)
     {
@@ -89,14 +89,12 @@ int conn_socket(const char *host, unsigned int port)
 
     memset(&name, 0, sizeof(struct sockaddr_in));
     name.sin_family = AF_INET;
-    name.sin_port = htons(port);
-
-    /* Resolve hostname */
-    if (inet_aton(host, &(name.sin_addr)) < SUCCESS)
+    if (inet_aton(host, &(name.sin_addr)))
     {
         perror("Failed to resolve hostname");
-        return -ERR_HTONS;
+        return -ERR_HOSTNAME;
     }
+    name.sin_port = htons(port);
 
     /* Connect to socket */
     if (connect(fd, (const struct sockaddr *)&name,

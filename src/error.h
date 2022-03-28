@@ -57,8 +57,6 @@ enum errcode
     ERR_RECV,
     /* Failed to get hostname */
     ERR_HOSTNAME,
-    /* Failed to resolve hostname */
-    ERR_HTONS,
     /* Failed to create epoll */
     ERR_EPOLL = 30,
     /* Failed to control epoll */
