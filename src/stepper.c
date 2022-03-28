@@ -43,11 +43,11 @@ void rotate(int rotations, int pul_fd) {
 }
 
 int islegal(char* target) {
-    if (strlen(target) > 10) {
+    if (strlen(target) > 10u) {
         perror("input should be at most 10 characters.\n");
         return 0;
     }
-    for (int i = 0; i < strlen(target); ++i) {
+    for (size_t i = 0; i < strlen(target); ++i) {
         if (target[i] < '0' || target[i] > '9') {
             return 0;
         }
@@ -296,7 +296,7 @@ int main(int argc, char **argv) {
                         }
                         printf("Incomming connection: %s port:%u\n", inet_ntoa(in_socket.sin_addr), in_socket.sin_port);
                         // register the new socket into epoll
-                        ev.events = EPOLLIN | EPOLLRDHUP;
+                        ev.events = EPOLLIN | EPOLLRDHUP | EPOLLHUP;
                         ev.data.fd = fd;
                         ret = epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fd, &ev);
                         if (ret < 0) {
@@ -326,7 +326,7 @@ int main(int argc, char **argv) {
                         printf("Get command from client\n");
                         ret = read(fd, &in_packet , sizeof(motor_packet_t));
                         if (ret < 0) {
-                            printf("Error: %s\n");
+                            printf("Error: %s\n", strerror(errno));
                             continue;
                         }
                         dir = in_packet.direction;
@@ -337,7 +337,7 @@ int main(int argc, char **argv) {
                         rotate(rotations, pulse_fd);
                     }
                 // peer disconnected.
-                } else if (evlist[i].events & EPOLLRDHUP) {
+                } else if (evlist[i].events & (EPOLLRDHUP | EPOLLRDHUP)) {
                     fd = evlist[i].data.fd;
                     epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, NULL);
                     close(fd);
