@@ -6,7 +6,7 @@ all: out/sensor_thread_unix out/sensor_thread_inet out/control_thread_unix out/c
 out/sensor_thread_unix: src/sensor_thread_unix.c src/socket_unix.c src/sensor_io.c src/blocking_io.c
 	$(CC) $^ -o $@ $(CFLAGS)
 
-out/sensor_thread_inet: src/sensor_thread_inet.c src/socket_unix.c src/sensor_io.c src/blocking_io.c
+out/sensor_thread_inet: src/sensor_thread_inet.c src/socket_inet.c src/sensor_io.c src/blocking_io.c
 	$(CC) $^ -o $@ $(CFLAGS)
 
 out/control_thread_unix: src/control_thread_unix.c src/socket_unix.c
