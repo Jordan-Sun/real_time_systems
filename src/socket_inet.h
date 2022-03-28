@@ -34,8 +34,8 @@
 /* Socket protocal */
 #define SOCK_PROTOCAL 0
 
-int init_socket(unsigned int port, int backlog);
+int init_socket(const char *host, unsigned int port, int backlog);
 
-int conn_socket(const char *ip, unsigned int port);
+int conn_socket(const char *host, unsigned int port);
 
 #endif /* SOCKET_H */

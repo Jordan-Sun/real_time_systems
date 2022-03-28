@@ -193,7 +193,7 @@ int main(int argc, char *argv[])
     max = DEFAULT_MAX;
     val_tmp = 0;
 
-    conn_fd = init_socket(atoi(argv[PORT_NUM]), SOCK_BACKLOG);
+    conn_fd = init_socket(NULL, atoi(argv[PORT_NUM]), SOCK_BACKLOG);
     if (conn_fd < SUCCESS)
     {
         perror("Failed to connect to socket");
@@ -208,18 +208,18 @@ int main(int argc, char *argv[])
     }
 
     ev.events = EPOLLIN;
-    ev.data.fd = STDIN_FILENO;
-    if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, STDIN_FILENO, &ev) < SUCCESS)
-    {
-        perror("Failed to add stdin to epoll");
-        return -ERR_EPCTL;
-    }
-
-    ev.events = EPOLLIN;
     ev.data.fd = conn_fd;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, conn_fd, &ev) < SUCCESS)
     {
         perror("Failed to add connection socket to epoll");
+        return -ERR_EPCTL;
+    }
+
+    ev.events = EPOLLIN;
+    ev.data.fd = STDIN_FILENO;
+    if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, STDIN_FILENO, &ev) < SUCCESS)
+    {
+        perror("Failed to add stdin to epoll");
         return -ERR_EPCTL;
     }
 
@@ -235,15 +235,15 @@ int main(int argc, char *argv[])
         else if (nfds == 0)
         {
             /* timeout behavior */
-            if (indoor_fd && outdoor_fd)
-            {
-                /* use previous data */
-                printf("Timeout, using previous data.\n");
-                if (update(motor_fd, light_fd, indoor, outdoor, min, max))
-                {
-                    printf("Failed to update.\n");
-                }
-            }
+            // if (indoor_fd && outdoor_fd)
+            // {
+            //     /* use previous data */
+            //     printf("Timeout, using previous data.\n");
+            //     if (update(motor_fd, light_fd, indoor, outdoor, min, max))
+            //     {
+            //       printf("Failed to update.\n");
+            //     }
+            // }
             /* no connection */
         }
         else
@@ -430,11 +430,25 @@ int main(int argc, char *argv[])
                     else if (events[i].data.fd == indoor_fd)
                     {
                         printf("Indoor socket disconnected.\n");
+                        ev.events = EPOLLIN | EPOLLRDHUP;
+                        ev.data.fd = indoor_fd;
+                        if (epoll_ctl(epoll_fd, EPOLL_CTL_DEL, indoor_fd, &ev) < SUCCESS)
+                        {
+                            perror("Failed to remove indoor socket from epoll");
+                            return -ERR_EPCTL;
+                        }
                         indoor_fd = 0;
                     }
                     else if (events[i].data.fd == outdoor_fd)
                     {
                         printf("Outdoor socket disconnected.\n");
+                        ev.events = EPOLLIN | EPOLLRDHUP;
+                        ev.data.fd = outdoor_fd;
+                        if (epoll_ctl(epoll_fd, EPOLL_CTL_DEL, outdoor_fd, &ev) < SUCCESS)
+                        {
+                            perror("Failed to remove outdoor socket from epoll");
+                            return -ERR_EPCTL;
+                        }
                         outdoor_fd = 0;
                     }
                 }
