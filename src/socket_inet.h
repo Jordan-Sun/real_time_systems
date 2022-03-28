@@ -21,6 +21,7 @@
 #define SOCKET_H
 
 #include "sensor_packet.h"
+#include "motor_packet.h"
 #include "error.h"
 
 #include <stdio.h>
@@ -36,9 +37,5 @@
 int init_socket(unsigned int port, int backlog);
 
 int conn_socket(const char *ip, unsigned int port);
-
-int send_packet(unsigned int fd, const sensor_packet_t *packet);
-
-int recv_packet(unsigned int fd, sensor_packet_t *packet);
 
 #endif /* SOCKET_H */

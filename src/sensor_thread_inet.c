@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
 		perror("Failed to get time");
 		return ERR_TIME;
 	}
-	ret = send_packet(sock_fd, &packet);
+	ret = send(sock_fd, &packet, sizeof(sensor_packet_t), 0);
 	if (ret < SUCCESS)
 		return ret;
 	last_packet = packet;
@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
 
 			printf("visible=%dlux\tinfrared=%dlux\tfull=%dlux\tseq=%d\t\n", packet.visible, packet.infrared, packet.full, packet.sequence);
 
-			ret = send_packet(sock_fd, &packet);
+			ret = send(sock_fd, &packet, sizeof(sensor_packet_t), 0);
 			if (ret < SUCCESS)
 				return ret;
 			last_packet = packet;

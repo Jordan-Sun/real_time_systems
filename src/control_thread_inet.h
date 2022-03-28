@@ -26,16 +26,21 @@
 #define SOCK_BACKLOG 8
 /* Maximum epoll events */
 #define MAX_EVENTS SOCK_BACKLOG + 1
-/* Socket symbols */
-#define INDOOR_SYM 'i'
-#define OUTDOOR_SYM 'o'
 /* Control command words */
 #define MIN_CMD "min"
 #define MAX_CMD "max"
-#define CMD_MAX_WIDTH 4
+#define MOTOR_CMD "motor"
+#define LIGHT_CMD "light"
+/* Socket symbols */
+#define INDOOR_SYM "i"
+#define OUTDOOR_SYM "o"
 /* Default threshold */
 #define DEFAULT_MIN 128
 #define DEFAULT_MAX 256
+/* Motor movement */
+#define MOTOR_CW 0
+#define MOTOR_CCW 1
+#define MOTOR_TURNS 10
 /* Timeout interval (ms) */
 #define EPOLL_TIMEOUT -1
 

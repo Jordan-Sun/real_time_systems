@@ -106,13 +106,3 @@ int conn_socket(const char *host, unsigned int port)
 
     return fd;
 }
-
-int send_packet(unsigned int fd, const sensor_packet_t *packet)
-{
-    return send(fd, packet, sizeof(sensor_packet_t), 0);
-}
-
-int recv_packet(unsigned int fd, sensor_packet_t *packet)
-{
-    return recv(fd, packet, sizeof(sensor_packet_t), MSG_WAITALL);
-}
