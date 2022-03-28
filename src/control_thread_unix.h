@@ -1,5 +1,5 @@
 /*
- * control_thread.c
+ * control_thread_unix.c
  *
  * Control thread.
  *

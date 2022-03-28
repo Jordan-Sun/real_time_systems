@@ -1,5 +1,5 @@
 /*
- * control_thread.c
+ * control_thread_inet.c
  *
  * Control thread.
  *
@@ -19,8 +19,8 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "control_thread.h"
-#include "socket.h"
+#include "control_thread_inet.h"
+#include "socket_inet.h"
 #include "sensor_packet.h"
 // #include "motor_packet.h"
 #include "error.h"
@@ -167,7 +167,7 @@ int main(int argc, char *argv[])
     max = DEFAULT_MAX;
     val_tmp = 0;
 
-    conn_fd = init_socket(argv[SOCK_PATH], SOCK_BACKLOG);
+    conn_fd = init_socket(atoi(argv[PORT_NUM]), SOCK_BACKLOG);
     if (conn_fd < SUCCESS)
     {
         perror("Failed to connect to socket");

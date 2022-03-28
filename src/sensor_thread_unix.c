@@ -1,5 +1,5 @@
 /*
- * sensor_thread.c
+ * sensor_thread_unix.c
  *
  * Reads data from an tsl2561 ambient light sensor on the I2C bus at
  * I2C_PATH, and sends it as a data packet to the socket at SOCKET_PATH.
@@ -20,9 +20,9 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "sensor_thread.h"
+#include "sensor_thread_unix.h"
 #include "sensor_io.h"
-#include "socket.h"
+#include "socket_unix.h"
 
 #include <stdio.h>
 
