@@ -37,10 +37,6 @@
 /* Default threshold */
 #define DEFAULT_MIN 128
 #define DEFAULT_MAX 256
-/* Motor movement */
-#define MOTOR_CW 0
-#define MOTOR_CCW 1
-#define MOTOR_TURNS 10
 /* Timeout interval (ms) */
 #define EPOLL_TIMEOUT -1
 

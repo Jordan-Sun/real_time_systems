@@ -22,6 +22,12 @@
 
 #include <time.h>
 
+/* Motor movement */
+#define MOTOR_LOWER -1  /* CW */
+#define MOTOR_STOP 0
+#define MOTOR_RAISE 1   /* CCW */
+
+
 typedef struct motor_packet
 {
     /* Metadata */
@@ -29,7 +35,6 @@ typedef struct motor_packet
     unsigned int sequence;
     /* Data */
     int direction;
-    int turns;
 } motor_packet_t;
 
 #endif /* MOTOR_PACKET_H */

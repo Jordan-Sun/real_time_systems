@@ -28,6 +28,7 @@
 #include <sys/epoll.h>
 #include <string.h>
 
+static int motor_dir = MOTOR_STOP;
 static int light_on = 0;
 static unsigned int seq = 0;
 
@@ -75,7 +76,7 @@ int use_sensor(int fd, int *data)
         *data = packet.visible;
     }
 
-    printf("%d: visible=%dlux\tinfrared=%dlux\tfull=%dlux\tseq=%d\ttime=%ld.%ld\n", fd, packet.visible, packet.infrared, packet.full, packet.sequence, diff_timestamp.tv_sec, diff_timestamp.tv_nsec);
+    // printf("%d: visible=%dlux\tinfrared=%dlux\tfull=%dlux\tseq=%d\ttime=%ld.%ld\n", fd, packet.visible, packet.infrared, packet.full, packet.sequence, diff_timestamp.tv_sec, diff_timestamp.tv_nsec);
 
     return SUCCESS;
 }
@@ -83,6 +84,20 @@ int use_sensor(int fd, int *data)
 /*
  * Updates.
  */
+int update_motor(int motor_fd, int dir)
+{
+    if (motor_fd && (dir != motor_dir))
+    {
+        if (clock_gettime(CLOCK_MONOTONIC, &packet.timestamp) < 0)
+        {
+            return -ERR_TIME;
+        }
+        packet.sequence = seq++;
+        packet.direction = dir;
+        return (send(motor_fd, &packet, sizeof(motor_packet_t), 0) != sizeof(motor_packet_t));
+    }
+}
+
 int update(int motor_fd, int light_fd, int indoor, int outdoor, int min, int max)
 {
     motor_packet_t packet;
@@ -91,74 +106,27 @@ int update(int motor_fd, int light_fd, int indoor, int outdoor, int min, int max
     {
         if (outdoor > min)
         {
-            if (motor_fd)
-            {
-                printf("Rasing curtain.\n");
-                if (clock_gettime(CLOCK_MONOTONIC, &packet.timestamp) < 0)
-                {
-                    return -ERR_TIME;
-                }
-                packet.sequence = seq++;
-                packet.direction = MOTOR_CW;
-                packet.turns = MOTOR_TURNS;
-                return send(motor_fd, &packet, sizeof(motor_packet_t), 0);
-            }
-            else
-            {
-                printf("Not connected to motor.\n");
-            }
+            return update_motor(motor_fd, MOTOR_RAISE);
         }
-        
-        if (light_on)
-        {
-            printf("Too dim inside.\n");
-        }
-        else
+        else if (!light_on)
         {
             light_on = 1;
-            printf("Turning light on.\n");
-            if (!light_fd)
-            {
-                printf("Not connected to light.\n");
-            }
         }
+        return update_motor(motor_fd, MOTOR_STOP);
     }
     else if (indoor > max)
     {
         if (light_on)
         {
             light_on = 0;
-            printf("Turning light off.\n");
-            if (!light_fd)
-            {
-                printf("Not connected to light.\n");
-            }
-        }
-        else if (outdoor > max)
-        {
-            printf("Too bright outside.\n");
+            return update_motor(motor_fd, MOTOR_STOP);
         }
         else
         {
-            if (motor_fd)
-            {
-                printf("Lowering curtain.\n");
-                if (clock_gettime(CLOCK_MONOTONIC, &packet.timestamp) < 0)
-                {
-                    return -ERR_TIME;
-                }
-                packet.sequence = seq++;
-                packet.direction = MOTOR_CCW;
-                packet.turns = MOTOR_TURNS;
-                return send(motor_fd, &packet, sizeof(motor_packet_t), 0);
-            }
-            else
-            {
-                printf("Not connected to motor.\n");
-            }
+            return update_motor(motor_fd, MOTOR_LOWER);
         }
     }
-    return SUCCESS;
+    return update_motor(motor_fd, MOTOR_STOP);
 }
 
 int main(int argc, char *argv[])
