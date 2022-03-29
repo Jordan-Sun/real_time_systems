@@ -77,7 +77,7 @@ int use_sensor(int fd, int *data)
         *data = packet.visible;
     }
 
-    printf("%d: visible=%dlux\tinfrared=%dlux\tfull=%dlux\tseq=%d\ttime=%ld.%ld\n", fd, packet.visible, packet.infrared, packet.full, packet.sequence, diff_timestamp.tv_sec, diff_timestamp.tv_nsec);
+    // printf("%d: visible=%dlux\tinfrared=%dlux\tfull=%dlux\tseq=%d\ttime=%ld.%ld\n", fd, packet.visible, packet.infrared, packet.full, packet.sequence, diff_timestamp.tv_sec, diff_timestamp.tv_nsec);
 
     return SUCCESS;
 }
@@ -141,11 +141,7 @@ int update(int motor_fd, int light_fd, int indoor, int outdoor, int min, int max
                 printf("Not connected to light.\n");
             }
         }
-        else if (outdoor > max)
-        {
-            printf("Too bright outside.\n");
-        }
-        else
+        else if (outdoor <= max)
         {
             if (motor_fd)
             {
