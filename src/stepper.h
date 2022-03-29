@@ -27,7 +27,7 @@
 #define HIGH "1"
 #define LOW "0"
 #define OUT "out"
-#define INTERVAL 50
+#define INTERVAL 10
 #define BUFSZ 128 
 #define VALUE_FMT "/sys/class/gpio/gpio%s/value"
 #define DIR_FMT "/sys/class/gpio/gpio%s/direction"
