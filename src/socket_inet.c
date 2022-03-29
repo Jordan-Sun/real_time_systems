@@ -24,7 +24,7 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 
-int init_socket(unsigned int port, int backlog)
+int init_socket(const char *host, unsigned int port, int backlog)
 {
     /* File descriptor for the socket */
     int fd;
@@ -42,7 +42,18 @@ int init_socket(unsigned int port, int backlog)
 
     memset(&name, 0, sizeof(struct sockaddr_in));
     name.sin_family = AF_INET;
-    name.sin_addr.s_addr = INADDR_ANY;
+    if (host)
+    {
+        if (inet_aton(host, &(name.sin_addr)))
+        {
+            perror("Failed to resolve hostname");
+            return -ERR_HOSTNAME;
+        }
+    }
+    else
+    {
+        name.sin_addr.s_addr = INADDR_ANY;
+    }
     name.sin_port = htons(port);
 
     /* Bind socket */
