@@ -29,6 +29,8 @@
 #include <string.h>
 
 static int light_on = 0;
+static int indoor_ready = 0;
+static int outdoor_ready = 0;
 static unsigned int seq = 0;
 
 /*
@@ -87,6 +89,11 @@ int update(int motor_fd, int light_fd, int indoor, int outdoor, int min, int max
 {
     motor_packet_t packet;
     
+    if (!(indoor_ready && outdoor_ready))
+    {
+        return SUCCESS;
+    }
+
     if (indoor < min)
     {
         if (outdoor > min)
@@ -158,6 +165,8 @@ int update(int motor_fd, int light_fd, int indoor, int outdoor, int min, int max
             }
         }
     }
+    indoor_ready = 0;
+    outdoor_ready = 0;
     return SUCCESS;
 }
 
@@ -235,16 +244,6 @@ int main(int argc, char *argv[])
         else if (nfds == 0)
         {
             /* timeout behavior */
-            // if (indoor_fd && outdoor_fd)
-            // {
-            //     /* use previous data */
-            //     printf("Timeout, using previous data.\n");
-            //     if (update(motor_fd, light_fd, indoor, outdoor, min, max))
-            //     {
-            //       printf("Failed to update.\n");
-            //     }
-            // }
-            /* no connection */
         }
         else
         {
@@ -391,6 +390,7 @@ int main(int argc, char *argv[])
                         else
                         {
                             indoor = indoor_tmp;
+                            indoor_ready = 1;
                             if (update(motor_fd, light_fd, indoor, outdoor, min, max))
                             {
                                 printf("Failed to update.\n");
@@ -407,6 +407,7 @@ int main(int argc, char *argv[])
                         else
                         {
                             outdoor = outdoor_tmp;
+                            outdoor_ready = 1;
                             if (update(motor_fd, light_fd, indoor, outdoor, min, max))
                             {
                                 printf("Failed to update.\n");
