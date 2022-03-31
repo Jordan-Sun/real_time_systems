@@ -9,12 +9,10 @@ int msleep(long tms)
     struct timespec ts;
     int ret;
 
-    if (tms < 0)
-    {
+    if (tms < 0){
         errno = EINVAL;
         return -1;
     }
-
     ts.tv_sec = tms / 1000;
     ts.tv_nsec = (tms % 1000) * 1000000;
 
@@ -25,11 +23,12 @@ int msleep(long tms)
     return ret;
 }
 
-void rotate(int rotations, int pul_fd) {
+void rotate(int rotations, int pul_fd, int ena_fd) {
     if (rotations > 1000 || rotations <= 0) {
         perror("rotations should be in (0, 100]\n");
         return;
     }
+    write(ena_fd, LOW, 1);
     for (int i = 1; i <= rotations; i++) {
         write(pul_fd, HIGH, 1);
         msleep(INTERVAL);
@@ -39,6 +38,7 @@ void rotate(int rotations, int pul_fd) {
             printf("already rotates %d/%d\n", i, rotations);
         }
     }
+    write(ena_fd, HIGH, 1);
     printf("rotation finished.\n");
 }
 
@@ -60,7 +60,7 @@ int set_direction(int direction, int dir_fd) {
         perror("direction should be 0 or 1.\n");
         return 0;
     }
-    char* dir = direction == 1 ? "1" : "0";
+    char* dir = direction == 1 ? HIGH : LOW;
     int ret = write(dir_fd, dir, 1);
     if (ret < 0) {
         printf("Error: %s\n", strerror(errno));
@@ -106,8 +106,9 @@ void unexport(char **argv) {
 
 // #IFDEF __DEBUG_STEPPER
 int main(int argc, char **argv) {
-    int rotations = 0, fd, ret, epoll_fd, pulse_fd, direction_fd;
-    int connection_socket, ready, need_quit = 0, dir;
+    int rotations = 0, fd, ret;
+    int epoll_fd = -1, enable_fd = -1, pulse_fd = -1, direction_fd = -1;
+    int connection_socket, ready, need_quit = 0, direction = 0, dir_in;
     unsigned int port_number;
     char buf[BUFSZ];
     // used socket
@@ -178,8 +179,9 @@ int main(int argc, char **argv) {
             else
                 ret = write(fd, LOW, 1);
         } else {
+            enable_fd = fd;
+            // warning: the low used for ena is for working only
             ret = write(fd, HIGH, 1);
-            close(fd);
         }
         if (ret < 0) {
             printf("Error: %s\n", strerror(errno));
@@ -195,6 +197,7 @@ int main(int argc, char **argv) {
         printf("Error: %s\n", strerror(errno));
         exit(EXIT_FAILURE);
     }
+    printf("pulse value is %s\n", buf);
     pulse_fd = open(buf, O_WRONLY);
     if (pulse_fd < 0) {
         printf("Error: %s\n", strerror(errno));
@@ -317,7 +320,7 @@ int main(int argc, char **argv) {
                             break;                       
                         } else if (islegal(buf)) {
                             rotations = atoi(buf);
-                            rotate(rotations, pulse_fd);
+                            rotate(rotations, pulse_fd, enable_fd);
                         } 
 
                     // data from client.
@@ -329,12 +332,15 @@ int main(int argc, char **argv) {
                             printf("Error: %s\n", strerror(errno));
                             continue;
                         }
-                        dir = in_packet.direction;
+                        dir_in = in_packet.direction;
                         rotations = in_packet.turns;
-                        printf("Receiving command to rotate motor %d pulses in %d direction\n", rotations, dir);
-                        ret = set_direction(dir, direction_fd);
-                        if (!ret) continue;
-                        rotate(rotations, pulse_fd);
+                        printf("Receiving command to rotate motor %d pulses in %d direction\n", rotations, dir_in);
+                        if (dir_in != direction) {
+                            ret = set_direction(dir_in, direction_fd);
+                            if (!ret) continue;
+                            direction = dir_in;
+                        }
+                        rotate(rotations, pulse_fd, enable_fd);
                     }
                 // peer disconnected.
                 } else if (evlist[i].events & (EPOLLRDHUP | EPOLLRDHUP)) {
@@ -349,6 +355,7 @@ int main(int argc, char **argv) {
     close(connection_socket);
     close(pulse_fd);
     close(direction_fd);
+    close(enable_fd);
     unexport(argv);
 
     return 0;
