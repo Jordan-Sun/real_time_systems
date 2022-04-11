@@ -22,6 +22,8 @@
 #include <netdb.h>
 //for epoll
 #include <sys/epoll.h>
+// for thread
+#include <pthread.h>
 
 
 #define HIGH "1"
@@ -34,6 +36,7 @@
 #define EVENT_SIZE 4
 #define SOCKET_PROTOCAL 0
 #define SOCKET_BACKLOG_SIZE 255
+#define WORKER_ROUNDS 10 
 
 // #define __DEBUG_STEPPER 1
 
@@ -46,6 +49,10 @@ enum ARGS{
     PORT_NUMBER,
     ARGS_NUMBER
 };
+
+static volatile short working = 0; // 1 for working, 0 for stop, -1 for termination.
+static pthread_mutex_t motor_mutex = PTHREAD_MUTEX_INITIALIZER;
+static int enable_fd = -1, pulse_fd = -1, direction_fd = -1;
 
 // /** initialize the config of stepper motor.
 // * input should be the bcm number of corresponding gpio pins.

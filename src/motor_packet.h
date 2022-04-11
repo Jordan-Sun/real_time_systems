@@ -29,6 +29,10 @@ typedef struct motor_packet
     unsigned int sequence;
     /* Data */
     int direction;
+    /*
+        when turns > 0, the motor will rotate turns rounds,
+        while turns == -1 turns == 0, the motor will stop immediately
+    */
     int turns;
 } motor_packet_t;
 

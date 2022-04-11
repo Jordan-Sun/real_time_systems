@@ -16,7 +16,7 @@ out/control_thread_inet: src/control_thread_inet.c src/socket_inet.c
 	$(CC) $^ -o $@ $(CFLAGS)
 
 out/stepper: src/stepper.c
-	$(CC) $^ -o $@ $(CFLAGS)
+	$(CC) $^ -o $@ $(CFLAGS) -pthread
 
 test: out/test_blocking_io out/test_socket_client out/test_socket_server
 

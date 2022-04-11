@@ -43,11 +43,16 @@ void rotate(int rotations, int pul_fd, int ena_fd) {
 }
 
 int islegal(char* target) {
-    if (strlen(target) > 10u) {
+    size_t len = strlen(target);
+    if (len > 10u) {
         perror("input should be at most 10 characters.\n");
         return 0;
     }
-    for (size_t i = 0; i < strlen(target); ++i) {
+    for (size_t i = 0; i < len; ++i) {
+        if (i == 0 && target[i] == '-') {
+            if (len <= 1) return 0;
+            continue;
+        }
         if (target[i] < '0' || target[i] > '9') {
             return 0;
         }
@@ -104,10 +109,49 @@ void unexport(char **argv) {
     close(fd);
 }
 
+void seq_rotate(int rotations, int pul_fd, int ena_fd) {
+    int previous_working_state = working;
+    if (rotations < 0) {
+        if (previous_working_state == 0) {
+            working = 1;
+            pthread_mutex_unlock(&motor_mutex);
+        }
+    } else {
+        if (previous_working_state == 1) {
+            pthread_mutex_lock(&motor_mutex);
+            working = 0;
+        }
+        if (rotations > 0) {
+            rotate(rotations, pul_fd, ena_fd);
+            if (working != previous_working_state) {
+                working = previous_working_state;
+                pthread_mutex_unlock(&motor_mutex);
+            }   
+        }
+    }
+}
+
+void *workerFn(void *data) {
+    printf("worker thread has been started.\n");
+    while (1) {
+        if (working < 0) {
+            break;
+        } else if (working == 0) {
+            pthread_mutex_lock(&motor_mutex);
+            pthread_mutex_unlock(&motor_mutex);
+        } else {
+            rotate(WORKER_ROUNDS, pulse_fd, enable_fd);
+        }
+    }
+    printf("worker thread has been terminated.\n");
+    return data;
+}
+
+
 // #IFDEF __DEBUG_STEPPER
 int main(int argc, char **argv) {
     int rotations = 0, fd, ret;
-    int epoll_fd = -1, enable_fd = -1, pulse_fd = -1, direction_fd = -1;
+    int epoll_fd = -1;
     int connection_socket, ready, need_quit = 0, direction = 0, dir_in;
     unsigned int port_number;
     char buf[BUFSZ];
@@ -117,6 +161,7 @@ int main(int argc, char **argv) {
     char server_host_name[NI_MAXHOST];
     struct epoll_event ev, evlist[EVENT_SIZE];
     motor_packet_t in_packet;
+    pthread_t worker;
 
     // usage
     if (argc != ARGS_NUMBER) {
@@ -275,8 +320,24 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
 
-    printf("Waiting for command.\n");
+    ret = pthread_create(&worker, NULL, workerFn, NULL);
+    if (ret != 0) {
+        printf("error: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
 
+    ret = pthread_detach(worker);
+    if (ret != 0) {
+        printf("error: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+
+    pthread_mutex_lock(&motor_mutex);
+
+    printf("worker thread has been set.\n");
+
+
+    printf("Waiting for command.\n");
 
     // listen command
     // TODO socket module
@@ -320,7 +381,7 @@ int main(int argc, char **argv) {
                             break;                       
                         } else if (islegal(buf)) {
                             rotations = atoi(buf);
-                            rotate(rotations, pulse_fd, enable_fd);
+                            seq_rotate(rotations, pulse_fd, enable_fd);
                         } 
 
                     // data from client.
@@ -340,7 +401,7 @@ int main(int argc, char **argv) {
                             if (!ret) continue;
                             direction = dir_in;
                         }
-                        rotate(rotations, pulse_fd, enable_fd);
+                        seq_rotate(rotations, pulse_fd, enable_fd);
                     }
                 // peer disconnected.
                 } else if (evlist[i].events & (EPOLLRDHUP | EPOLLRDHUP)) {
