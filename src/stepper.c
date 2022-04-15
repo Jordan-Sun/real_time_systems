@@ -336,7 +336,6 @@ int main(int argc, char **argv) {
 
     printf("worker thread has been set.\n");
 
-
     printf("Waiting for command.\n");
 
     // listen command
@@ -422,10 +421,3 @@ int main(int argc, char **argv) {
     return 0;
 
 }
-// #ENDIF
-
-// #IFNDEF __DEBUG_STEPPER
-// int main() {
-
-// }
-// #ENDIF
