@@ -40,7 +40,8 @@
 /* Motor movement */
 #define MOTOR_CW 0
 #define MOTOR_CCW 1
-#define MOTOR_TURNS 100
+#define MOTOR_TURN -1
+#define MOTOR_STOP 0
 /* Timeout interval (ms) */
 #define EPOLL_TIMEOUT -1
 

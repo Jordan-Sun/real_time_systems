@@ -107,8 +107,11 @@ int update(int motor_fd, int light_fd, int indoor, int outdoor, int min, int max
                 }
                 packet.sequence = seq++;
                 packet.direction = MOTOR_CW;
-                packet.turns = MOTOR_TURNS;
-                return send(motor_fd, &packet, sizeof(motor_packet_t), 0);
+                packet.turns = MOTOR_TURN;
+                if (send(motor_fd, &packet, sizeof(motor_packet_t), 0) < 0)
+                {
+                    return -ERR_SEND;
+                }
             }
             else
             {
@@ -152,8 +155,11 @@ int update(int motor_fd, int light_fd, int indoor, int outdoor, int min, int max
                 }
                 packet.sequence = seq++;
                 packet.direction = MOTOR_CCW;
-                packet.turns = MOTOR_TURNS;
-                return send(motor_fd, &packet, sizeof(motor_packet_t), 0);
+                packet.turns = MOTOR_TURN;
+                if (send(motor_fd, &packet, sizeof(motor_packet_t), 0) < 0)
+                {
+                    return -ERR_SEND;
+                }
             }
             else
             {
@@ -161,6 +167,22 @@ int update(int motor_fd, int light_fd, int indoor, int outdoor, int min, int max
             }
         }
     }
+    else
+    {
+        printf("Stopping curtain.\n");
+        if (clock_gettime(CLOCK_MONOTONIC, &packet.timestamp) < 0)
+        {
+            return -ERR_TIME;
+        }
+        packet.sequence = seq++;
+        packet.direction = MOTOR_CW;
+        packet.turns = MOTOR_STOP;
+        if (send(motor_fd, &packet, sizeof(motor_packet_t), 0) < 0)
+        {
+            return -ERR_SEND;
+        }
+    }
+
     indoor_ready = 0;
     outdoor_ready = 0;
     return SUCCESS;
