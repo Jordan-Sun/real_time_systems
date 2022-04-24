@@ -365,6 +365,8 @@ int main(int argc, char *argv[])
                             printf("%s MAX_VALUE\n", MAX_CMD);
                             printf("%s HOST PORT\n", MOTOR_CMD);
                             printf("%s HOST PORT\n", LIGHT_CMD);
+                            printf("%s HOST PORT\n", INDOOR_CMD);
+                            printf("%s HOST PORT\n", OUTDOOR_CMD);
                         }
                     }
                     else if (events[i].data.fd == conn_fd)

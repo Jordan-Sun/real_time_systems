@@ -23,6 +23,11 @@
 
 #include "sensor_io.h"
 
+/* Maximum sockets */
+#define SOCK_BACKLOG 8
+/* Maximum epoll events */
+#define MAX_EVENTS SOCK_BACKLOG + 1
+/* Wakeup period */
 #define PERIOD 1
 
 /* Argument indices */
@@ -32,8 +37,6 @@ enum argi
 	PROGRAM_NAME,
 	/* Path to the I2C bus */
 	I2C_PATH,
-	/* Path to the host */
-	HOST_PATH,
 	/* Port number */
 	PORT_NUM,
 	/* Expected number of arguments */

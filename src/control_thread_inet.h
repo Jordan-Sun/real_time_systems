@@ -22,18 +22,13 @@
 #ifndef CONTROL_THREAD_H
 #define CONTROL_THREAD_H
 
-/* Maximum sockets */
-#define SOCK_BACKLOG 8
-/* Maximum epoll events */
-#define MAX_EVENTS SOCK_BACKLOG + 1
 /* Control command words */
 #define MIN_CMD "min"
 #define MAX_CMD "max"
 #define MOTOR_CMD "motor"
 #define LIGHT_CMD "light"
-/* Socket symbols */
-#define INDOOR_SYM "i"
-#define OUTDOOR_SYM "o"
+#define INDOOR_CMD "indoor"
+#define OUTDOOR_CMD "outdoor"
 /* Default threshold */
 #define DEFAULT_MIN 128
 #define DEFAULT_MAX 256

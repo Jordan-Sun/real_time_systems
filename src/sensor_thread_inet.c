@@ -31,7 +31,7 @@
  */
 void usage_msg(char *program)
 {
-	printf("Usage: %s I2C_PATH HOST_PATH PORT_NUM\n", program);
+	printf("Usage: %s I2C_PATH PORT_NUM\n", program);
 	printf("Reads data from an tsl2561 ambient light sensor on the ");
 	printf("I2C bus at I2C_PATH, and sends it as a data packet to ");
 	printf("the socket at SOCKET_PATH.\n");
@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 	/* Return values */
 	int ret;
 	/* File descriptor of the sensor and the socket */
-	int sensor_fd, sock_fd;
+	int sensor_fd, conn_fd, data_fd;
 	/* Package sequence counter */
 	unsigned int seq;
 	/* Data packets */
@@ -60,16 +60,15 @@ int main(int argc, char *argv[])
 	if (sensor_fd < SUCCESS)
 		return sensor_fd;
 	printf("Initialized.\n");
-	
+
 	/* Connect to socket */
-	printf("Connecting to host %s on port %s...\n", argv[HOST_PATH], argv[PORT_NUM]);
-	sock_fd = conn_socket(argv[HOST_PATH], atoi(argv[PORT_NUM]));
-	if (sock_fd < SUCCESS)
-		return sock_fd;
+	conn_fd = init_socket(NULL, atoi(argv[PORT_NUM]), SOCK_BACKLOG);
+	if (conn_fd < SUCCESS)
+		return conn_fd;
+
+	data_fd = accept(conn_fd, NULL, NULL);
 	printf("Connected.\n");
 
-	sleep(PERIOD);
-	
 	/* First packet */
 	ret = read_sensor(sensor_fd, &packet);
 	if (ret < SUCCESS)
@@ -82,7 +81,7 @@ int main(int argc, char *argv[])
 		perror("Failed to get time");
 		return ERR_TIME;
 	}
-	ret = send(sock_fd, &packet, sizeof(sensor_packet_t), 0);
+	ret = send(data_fd, &packet, sizeof(sensor_packet_t), 0);
 	if (ret < SUCCESS)
 		return ret;
 	last_packet = packet;
@@ -106,7 +105,7 @@ int main(int argc, char *argv[])
 
 			printf("visible=%dlux\tinfrared=%dlux\tfull=%dlux\tseq=%d\t\n", packet.visible, packet.infrared, packet.full, packet.sequence);
 
-			ret = send(sock_fd, &packet, sizeof(sensor_packet_t), 0);
+			ret = send(data_fd, &packet, sizeof(sensor_packet_t), 0);
 			if (ret < SUCCESS)
 				return ret;
 			last_packet = packet;
