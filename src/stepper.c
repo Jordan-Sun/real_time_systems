@@ -403,7 +403,7 @@ int main(int argc, char **argv) {
                         seq_rotate(rotations, pulse_fd, enable_fd);
                     }
                 // peer disconnected.
-                } else if (evlist[i].events & (EPOLLRDHUP | EPOLLRDHUP)) {
+                } else if (evlist[i].events & (EPOLLRDHUP | EPOLLHUP)) {
                     fd = evlist[i].data.fd;
                     epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, NULL);
                     close(fd);
