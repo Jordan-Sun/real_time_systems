@@ -404,13 +404,13 @@ int main(int argc, char **argv) {
                             direction = dir_in;
                         }
                         // for latency test purposes
-                        if (clock_gettime(CLOCK_MONOTONIC, &current_time) < 0)
-                        {
-                            return -ERR_TIME;
+                        if (clock_gettime(CLOCK_MONOTONIC, &current_time) < 0) {
+                            printf("Error:%s\n", strerror(errno));
+                        } else {
+                            latency_sec = current_time.tv_sec + (current_time.tv_nsec < in_packet.timestamp.tv_nsec ? -1 : 0);
+                            latency_nsec = current_time.tv_nsec - in_packet.timestamp.tv_nsec + (current_time.tv_nsec < in_packet.timestamp.tv_nsec ? NS : 0);
+                            printf("the latency is %lld.%09ld s\n", latency_sec, latency_nsec);
                         }
-                        latency_sec = current_time.tv_sec + (current_time.tv_nsec < in_packet.timestamp.tv_nsec ? -1 : 0);
-                        latency_nsec = current_time.tv_nsec - in_packet.timestamp.tv_nsec + (current_time.tv_nsec < in_packet.timestamp.tv_nsec ? NS : 0);
-                        printf("the latency is %lld.%09ld s\n", latency_sec, latency_nsec);
                         seq_rotate(rotations, pulse_fd, enable_fd);
                     }
                 // peer disconnected.
