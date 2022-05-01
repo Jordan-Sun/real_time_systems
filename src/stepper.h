@@ -37,6 +37,7 @@
 #define SOCKET_PROTOCAL 0
 #define SOCKET_BACKLOG_SIZE 255
 #define WORKER_ROUNDS 10 
+#define NS 1e9
 
 // #define __DEBUG_STEPPER 1
 

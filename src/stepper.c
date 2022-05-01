@@ -153,6 +153,7 @@ int main(int argc, char **argv) {
     int rotations = 0, fd, ret;
     int epoll_fd = -1;
     int connection_socket, ready, need_quit = 0, direction = 0, dir_in;
+    long latency_nsec;
     unsigned int port_number;
     char buf[BUFSZ];
     // used socket
@@ -162,6 +163,8 @@ int main(int argc, char **argv) {
     struct epoll_event ev, evlist[EVENT_SIZE];
     motor_packet_t in_packet;
     pthread_t worker;
+    struct timespec current_time;
+    time_t latency_sec;
 
     // usage
     if (argc != ARGS_NUMBER) {
@@ -400,6 +403,14 @@ int main(int argc, char **argv) {
                             if (!ret) continue;
                             direction = dir_in;
                         }
+                        // for latency test purposes
+                        if (clock_gettime(CLOCK_MONOTONIC, &current_time) < 0)
+                        {
+                            return -ERR_TIME;
+                        }
+                        latency_sec = current_time.tv_sec + (current_time.tv_nsec < in_packet.timestamp.tv_nsec ? -1 : 0);
+                        latency_nsec = current_time.tv_nsec - in_packet.timestamp.tv_nsec + (current_time.tv_nsec < in_packet.timestamp.tv_nsec ? NS : 0);
+                        printf("the latency is %lld.%09ld s\n", latency_sec, latency_nsec);
                         seq_rotate(rotations, pulse_fd, enable_fd);
                     }
                 // peer disconnected.
