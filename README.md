@@ -1,4 +1,7 @@
 # Real-time Photo-sensitive Curtain
+
+Sensor thread and motor thread on the Raspberry Pi for Real-time Photo-sensitive Curtain.
+
 ## Usage
 
 ### Sensor Setup
