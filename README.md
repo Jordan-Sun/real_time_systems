@@ -1,19 +1,18 @@
 # Real-time Photo-sensitive Curtain
-
 ## Usage
 
 ### Sensor Setup
 
 To setup our model, one should connect the indoor sensor and the outdoor sensor to a separate set of I2C pins on the Raspberry Pi, or any other Linux device that one may chose to use.
 Make sure the I2C buses are enabled and made available to user space programs by checking if files named `i2c-0`, `i2c-1`, etc. exists under the `/dev` directory.
-On the Raspberry Pi, one may enable the I2C buses to user space programs by adding `dtparam=i2c\_vc=on` and `dtparam=i2c\_arm=on` to `/boot/config.txt`.
+On the Raspberry Pi, one may enable the I2C buses to user space programs by adding `dtparam=i2c_vc=on` and `dtparam=i2c_arm=on` to `/boot/config.txt`.
 To make it available to uesr space programs, add `i2c-dev` to `/etc/modules`.
 Reboot the Pi, now one should be able to see those files.
 This setting is persistent across system reboots so we decided not to automatically enable the settings as this requires root privilege.
 Now one may execute the sensor thread program with 
 
 ```
-<program\_name> <i2c\_file> <port>
+<program_name> <i2c_file> <port>
 ```
 
 to run the thread on the port specified with the sensor associated with the i2c file.
@@ -26,7 +25,7 @@ However, one should note that exporting and unexporting GPIO pins requires root 
 Now one may execute the stepper motor thread program with
 
 ```
-<program\_name> <ENA+> <DIR+> <PUL+> <port>
+<program_name> <ENA+> <DIR+> <PUL+> <port>
 ```
 
 as the root user or with sudo to run the the thread on the port specified.
@@ -38,7 +37,7 @@ Since the quick script runs the stepper motor thread program, which requires roo
 Now one may run the script with
 
 ```
-<script\_name>
+<script_name>
 ```
 
 as the root user or with sudo.
@@ -53,7 +52,7 @@ crontab -e
 as the root user or with sudo, and add
 
 ```
-@reboot sudo <script\_path>
+@reboot sudo <script_path>
 ```
 
 to the file.
